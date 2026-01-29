@@ -39,63 +39,64 @@
 
   <input type="text" id="shopName" placeholder="Shop Name">
   <input type="tel" id="phone" placeholder="Mobile Number (+91)">
+  <input type="password" id="pin" placeholder="4-digit PIN">
 
   <br>
-  <div id="recaptcha-container"></div>
-
-  <button id="loginBtn">Login</button>
+  <button id="loginBtn">Register / Login</button>
 
   <p style="margin-top:30px;">
     <a href="index.html">⬅ Back to Home</a>
   </p>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCfjIQuEhY0CsROI8fTdXHmgC46JcXQuLk",
       authDomain: "nearby-connect-47f86.firebaseapp.com",
-      projectId: "nearby-connect-47f86",
-      storageBucket: "nearby-connect-47f86.firebasestorage.app",
-      messagingSenderId: "572215499674",
-      appId: "1:572215499674:web:017b04acd0f0a402ee3823"
+      projectId: "nearby-connect-47f86"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const shopName = document.getElementById("shopName").value;
-      const phone = document.getElementById("phone").value;
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const shopName = document.getElementById("shopName").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const pin = document.getElementById("pin").value.trim();
 
-      if (!shopName) return alert("Shop Name is required");
-      if (!phone) return alert("Phone number is required");
+      if (!shopName || !phone || !pin) {
+        alert("All fields are required");
+        return;
+      }
 
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+      if (pin.length !== 4) {
+        alert("PIN must be 4 digits");
+        return;
+      }
 
-      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-          const otp = prompt("Enter OTP sent to your phone");
-          if (!otp) return alert("OTP required");
+      const docRef = db.collection("retailers").doc(phone);
+      const doc = await docRef.get();
 
-          confirmationResult.confirm(otp)
-            .then((result) => {
-              const user = result.user;
-              alert("Retailer logged in successfully ✅");
-
-              db.collection("retailers").doc(user.uid).set({
-                shopName: shopName,
-                phone: user.phoneNumber,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
-            })
-            .catch(() => alert("Invalid OTP ❌"));
-        })
-        .catch((error) => alert(error.message));
+      if (!doc.exists) {
+        // Register new retailer
+        await docRef.set({
+          shopName,
+          phone,
+          pin,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Registered successfully ✅");
+      } else {
+        // Login
+        if (doc.data().pin === pin) {
+          alert("Login successful ✅");
+        } else {
+          alert("Wrong PIN ❌");
+        }
+      }
     });
   </script>
 
