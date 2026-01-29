@@ -17,5 +17,26 @@
   <a href="retailer.html" class="btn">Retailer Login</a>
 <a href="delivery.html" class="btn">Delivery Partner Login</a>
   <p style="margin-top:50px; color:#999;">Platform setup in progress 🚀</p>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyCfjIQuEhY0CsROI8fTdXHmgC46JcXQuLk",
+    authDomain: "nearby-connect-47f86.firebaseapp.com",
+    projectId: "nearby-connect-47f86",
+    storageBucket: "nearby-connect-47f86.firebasestorage.app",
+    messagingSenderId: "572215499674",
+    appId: "1:572215499674:web:017b04acd0f0a402ee3823"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  console.log("Firebase connected successfully ✅");
+</script>
 </body>
 </html>
