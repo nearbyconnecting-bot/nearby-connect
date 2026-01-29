@@ -27,6 +27,7 @@
       border: none;
       border-radius: 6px;
       font-size: 16px;
+      margin-top: 10px;
     }
     a { color: #2980b9; text-decoration: none; }
   </style>
@@ -36,15 +37,67 @@
   <h2>Retailer Login</h2>
   <p>Access your shop deliveries</p>
 
-  <input type="text" placeholder="Shop Name">
-  <input type="tel" placeholder="Mobile Number">
+  <input type="text" id="shopName" placeholder="Shop Name">
+  <input type="tel" id="phone" placeholder="Mobile Number (+91)">
 
-  <br><br>
-  <button>Login (Demo)</button>
+  <br>
+  <div id="recaptcha-container"></div>
+
+  <button id="loginBtn">Login</button>
 
   <p style="margin-top:30px;">
     <a href="index.html">⬅ Back to Home</a>
   </p>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfjIQuEhY0CsROI8fTdXHmgC46JcXQuLk",
+      authDomain: "nearby-connect-47f86.firebaseapp.com",
+      projectId: "nearby-connect-47f86",
+      storageBucket: "nearby-connect-47f86.firebasestorage.app",
+      messagingSenderId: "572215499674",
+      appId: "1:572215499674:web:017b04acd0f0a402ee3823"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const shopName = document.getElementById("shopName").value;
+      const phone = document.getElementById("phone").value;
+
+      if (!shopName) return alert("Shop Name is required");
+      if (!phone) return alert("Phone number is required");
+
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+
+      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+          const otp = prompt("Enter OTP sent to your phone");
+          if (!otp) return alert("OTP required");
+
+          confirmationResult.confirm(otp)
+            .then((result) => {
+              const user = result.user;
+              alert("Retailer logged in successfully ✅");
+
+              db.collection("retailers").doc(user.uid).set({
+                shopName: shopName,
+                phone: user.phoneNumber,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            })
+            .catch(() => alert("Invalid OTP ❌"));
+        })
+        .catch((error) => alert(error.message));
+    });
+  </script>
 
 </body>
 </html>
