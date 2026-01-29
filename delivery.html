@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Delivery Partner Login | Nearby Connect</title>
+  <title>Delivery Login | Nearby Connect</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -27,6 +27,7 @@
       border: none;
       border-radius: 6px;
       font-size: 16px;
+      margin-top: 10px;
     }
     a { color: #2980b9; text-decoration: none; }
   </style>
@@ -34,17 +35,70 @@
 <body>
 
   <h2>Delivery Partner Login</h2>
-  <p>Accept nearby delivery requests</p>
+  <p>Access your delivery tasks</p>
 
-  <input type="text" placeholder="Your Name">
-  <input type="tel" placeholder="Mobile Number">
+  <input type="text" id="deliveryName" placeholder="Your Name">
+  <input type="tel" id="phone" placeholder="Mobile Number (+91)">
+  <input type="password" id="pin" placeholder="4-digit PIN">
 
-  <br><br>
-  <button>Login (Demo)</button>
+  <br>
+  <button id="loginBtn">Register / Login</button>
 
   <p style="margin-top:30px;">
     <a href="index.html">⬅ Back to Home</a>
   </p>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfjIQuEhY0CsROI8fTdXHmgC46JcXQuLk",
+      authDomain: "nearby-connect-47f86.firebaseapp.com",
+      projectId: "nearby-connect-47f86"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const deliveryName = document.getElementById("deliveryName").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const pin = document.getElementById("pin").value.trim();
+
+      if (!deliveryName || !phone || !pin) {
+        alert("All fields are required");
+        return;
+      }
+
+      if (pin.length !== 4) {
+        alert("PIN must be 4 digits");
+        return;
+      }
+
+      const docRef = db.collection("deliveryPartners").doc(phone);
+      const doc = await docRef.get();
+
+      if (!doc.exists) {
+        // Register new delivery partner
+        await docRef.set({
+          name: deliveryName,
+          phone,
+          pin,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("Registered successfully ✅");
+      } else {
+        // Login
+        if (doc.data().pin === pin) {
+          alert("Login successful ✅");
+        } else {
+          alert("Wrong PIN ❌");
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>
