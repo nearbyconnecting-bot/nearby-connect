@@ -36,7 +36,10 @@
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
 
-  console.log("Firebase connected successfully ✅");
+ document.body.insertAdjacentHTML(
+  "beforeend",
+  "<p style='color:green;font-size:14px;'>Firebase connected successfully ✅</p>"
+);
 </script>
 </body>
 </html>
