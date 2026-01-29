@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Order | Nearby Connect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f4f6f8;
+    }
+    h2 { color: #2c3e50; }
+    input, select {
+      width: 90%;
+      max-width: 320px;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 12px 30px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    a { color: #2980b9; text-decoration: none; display: block; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h2>Create Order</h2>
+  <p>Fill in your shop details and assign a delivery partner (optional)</p>
+
+  <input type="text" id="retailerName" placeholder="Shop Name">
+  <input type="tel" id="retailerPhone" placeholder="Mobile Number (+91)">
+  
+  <select id="deliveryPhone">
+    <option value="">Select Delivery Partner (optional)</option>
+  </select>
+
+  <br>
+  <button id="createOrderBtn">Create Order</button>
+  
+  <a href="retailer.html">⬅ Back to Login</a>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyCfjIQuEhY0CsROI8fTdXHmgC46JcXQuLk",
+      authDomain: "nearby-connect-47f86.firebaseapp.com",
+      projectId: "nearby-connect-47f86"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Load Delivery Partners into dropdown
+    async function loadDeliveryPartners() {
+      const select = document.getElementById("deliveryPhone");
+      const snapshot = await db.collection("deliveryPartners").get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const option = document.createElement("option");
+        option.value = data.phone;
+        option.text = data.name + " (" + data.phone + ")";
+        select.appendChild(option);
+      });
+    }
+
+    loadDeliveryPartners();
+
+    // Create Order
+    document.getElementById("createOrderBtn").addEventListener("click", async () => {
+      const retailerName = document.getElementById("retailerName").value.trim();
+      const retailerPhone = document.getElementById("retailerPhone").value.trim();
+      const deliveryPhone = document.getElementById("deliveryPhone").value;
+      const deliveryName = deliveryPhone 
+        ? document.getElementById("deliveryPhone").selectedOptions[0].text.split(" (")[0] 
+        : "";
+
+      if (!retailerName || !retailerPhone) {
+        alert("Shop Name and Phone number are required");
+        return;
+      }
+
+      await db.collection("orders").add({
+        retailerName,
+        retailerPhone,
+        deliveryPhone: deliveryPhone || "",
+        deliveryName: deliveryName || "",
+        status: deliveryPhone ? "assigned" : "pending",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert("Order created successfully ✅");
+      document.getElementById("retailerName").value = "";
+      document.getElementById("retailerPhone").value = "";
+      document.getElementById("deliveryPhone").value = "";
+    });
+  </script>
+
+</body>
+</html>
